@@ -9,6 +9,7 @@ Run the tech demo, click on the Instructions button at the very top.
 
 ### Questions
 Run the tech demo, click on the FAQ button at the very top.
+And you can always ask in the discussion: https://www.reddit.com/r/godot/comments/1nrbg4d/20000_agents_avoidance_400_improvement_from_5k/
 
 ### Video
 Youtube: https://youtu.be/79aoQtEk9xs
