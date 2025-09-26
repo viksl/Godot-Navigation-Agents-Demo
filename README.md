@@ -9,6 +9,8 @@ Windows.
 2. On the right side there are three dots, click on them.
 3. <img width="358" height="727" alt="image" src="https://github.com/user-attachments/assets/01ebc00e-6a91-4a2d-b1cd-6d559fb46563" />
 4. Click on Download.
+5. Extract the zip file.
+6. Launch the exe file to play the demo project.
 
 ### Instructions
 Run the tech demo, click on the Instructions button at the very top.
