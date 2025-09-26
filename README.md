@@ -2,7 +2,7 @@
 Demo to test a navigation agents with avoidance in Godot with large agent numbers for my prototype.
 
 ### Builds
-Windows and Linux.
+Windows.
 
 ### Instructions
 Run the tech demo, click on the Instructions button at the very top.
