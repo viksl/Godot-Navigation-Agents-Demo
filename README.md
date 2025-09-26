@@ -7,9 +7,8 @@ Windows.
 ### Downloads
 1. Click on the NavigationTest.zip or here https://github.com/viksl/Godot-Navigation-Agents-Demo/blob/main/NavigationTest.zip
 2. On the right side there are three dots, click on them.
-3. Click on Download.
 <img width="358" height="727" alt="image" src="https://github.com/user-attachments/assets/01ebc00e-6a91-4a2d-b1cd-6d559fb46563" />
-
+3. Click on Download.
 
 ### Instructions
 Run the tech demo, click on the Instructions button at the very top.
