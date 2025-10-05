@@ -1,0 +1,87 @@
+[gd_scene load_steps=16 format=3 uid="uid://wg732qf5tiv8"]
+
+[ext_resource type="Script" uid="uid://bius7cnrsfnks" path="res://TestNavigation.cs" id="1_awaak"]
+[ext_resource type="Script" uid="uid://nav6eyv7nym7" path="res://Player.cs" id="3_lf7kq"]
+[ext_resource type="Resource" uid="uid://yu153wjmtv2g" path="res://NavigationSettings.tres" id="3_lqys6"]
+[ext_resource type="Texture2D" uid="uid://cscvghas32roj" path="res://texture_01.png" id="3_wpo5x"]
+[ext_resource type="PackedScene" uid="uid://qty52hayccwq" path="res://CameraPivot.tscn" id="5_ahcnh"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_jnr68"]
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+
+[sub_resource type="Sky" id="Sky_awaak"]
+sky_material = SubResource("ProceduralSkyMaterial_jnr68")
+
+[sub_resource type="Environment" id="Environment_7nkh2"]
+background_mode = 2
+sky = SubResource("Sky_awaak")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_jnr68"]
+vertices = PackedVector3Array(-249.5, 0.5, -249.5, -249.5, 0.5, 249.5, 249.5, 0.5, 249.5, 249.5, 0.5, -249.5)
+polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
+geometry_parsed_geometry_type = 0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jnr68"]
+albedo_texture = ExtResource("3_wpo5x")
+uv1_scale = Vector3(82.165, 82.165, 82.165)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jnr68"]
+material = SubResource("StandardMaterial3D_jnr68")
+size = Vector3(500, 1, 500)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_jnr68"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wpo5x"]
+albedo_color = Color(0, 0.4693508, 1, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_jnr68"]
+material = SubResource("StandardMaterial3D_wpo5x")
+
+[sub_resource type="PrismMesh" id="PrismMesh_jnr68"]
+
+[node name="TestNavigation" type="Node3D" node_paths=PackedStringArray("_agentsRoot", "_player")]
+script = ExtResource("1_awaak")
+_agentsRoot = NodePath("Agents")
+_player = NodePath("Player")
+_settings = ExtResource("3_lqys6")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_7nkh2")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("NavigationMesh_jnr68")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+mesh = SubResource("BoxMesh_jnr68")
+
+[node name="Player" type="CharacterBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+script = ExtResource("3_lf7kq")
+_speed = 25.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
+shape = SubResource("SphereShape3D_jnr68")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Player"]
+mesh = SubResource("SphereMesh_jnr68")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Player/MeshInstance3D"]
+transform = Transform3D(0.17472881, 0, 0, 0, -7.637639e-09, 0.17472881, 0, -0.17472881, -7.637639e-09, 0, 0.31445134, -0.8371235)
+mesh = SubResource("PrismMesh_jnr68")
+
+[node name="CameraPivot" parent="." node_paths=PackedStringArray("_target") instance=ExtResource("5_ahcnh")]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+_target = NodePath("../Player")
+
+[node name="Agents" type="Node3D" parent="."]
+
+[node name="ProcessDistancesTimer" type="Timer" parent="."]
+unique_name_in_owner = true

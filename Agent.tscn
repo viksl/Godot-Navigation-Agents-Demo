@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://d060w1e8fnaxo"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hemla"]
+albedo_color = Color(1, 0.40887713, 0.8469438, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hemla"]
+
+[node name="Agent" type="Node3D"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+material_override = SubResource("StandardMaterial3D_hemla")
+mesh = SubResource("BoxMesh_hemla")

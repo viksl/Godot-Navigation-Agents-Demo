@@ -1,0 +1,24 @@
+[gd_scene load_steps=2 format=3 uid="uid://qty52hayccwq"]
+
+[ext_resource type="Script" uid="uid://d0xpa1rcqsf5i" path="res://CameraPivot.cs" id="1_c7bqj"]
+
+[node name="CameraPivot" type="Node3D"]
+physics_interpolation_mode = 2
+script = ExtResource("1_c7bqj")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.7071068, 0.7071068, 0, -0.7071068, 0.7071068, 0, 43.299957, 40.203964)
+current = true
+fov = 24.1
+
+[node name="Camera3D2" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.7071068, 0.7071068, 0, -0.7071068, 0.7071068, 0, 85.3259, 82.42731)
+fov = 24.1
+
+[node name="Camera3D3" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.25881904, 0.9659259, 0, -0.9659259, 0.25881904, 0, 185.1578, 49.162685)
+fov = 24.1
+
+[node name="Camera3D4" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.25881904, 0.9659259, 0, -0.9659259, 0.25881904, 0, 497.1578, 132.16269)
+fov = 24.1

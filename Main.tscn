@@ -1,0 +1,588 @@
+[gd_scene load_steps=11 format=3 uid="uid://312php0aj7jv"]
+
+[ext_resource type="Script" uid="uid://lpwqvgkssl3g" path="res://Main.cs" id="1_glv2v"]
+[ext_resource type="Resource" uid="uid://yu153wjmtv2g" path="res://NavigationSettings.tres" id="2_uu6xs"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_r0du0"]
+
+[sub_resource type="InputEventKey" id="InputEventKey_uu6xs"]
+device = -1
+keycode = 96
+unicode = 96
+
+[sub_resource type="Shortcut" id="Shortcut_r0du0"]
+events = [SubResource("InputEventKey_uu6xs")]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_glv2v"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r0du0"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.92693514, 0, 0.20295832, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_uu6xs"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uu6xs"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(1.2032688e-08, 0.3305462, 0.24653953, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glv2v"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.99999994, 0.34074253, 0.21597737, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_glv2v")
+_settings = ExtResource("2_uu6xs")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="ResetButtonsArea" type="Control" parent="CanvasLayer"]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 154.0
+grow_horizontal = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/MarginContainer"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="VisibilityToggle" type="CheckButton" parent="CanvasLayer/MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_r0du0")
+button_pressed = true
+shortcut = SubResource("Shortcut_r0du0")
+
+[node name="Settings" type="VBoxContainer" parent="CanvasLayer/MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings"]
+custom_minimum_size = Vector2(0, 43)
+layout_mode = 2
+size_flags_vertical = 6
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 1
+text = "Agent count"
+vertical_alignment = 1
+
+[node name="AgentCountSet" type="SpinBox" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+max_value = 100000.0
+value = 10.0
+rounded = true
+allow_greater = true
+alignment = 1
+
+[node name="Confirm" type="Button" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(103.355, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_styles/focus = SubResource("StyleBoxEmpty_glv2v")
+text = "Reload"
+
+[node name="ConfirmObstacles" type="Button" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(171.525, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/focus = SubResource("StyleBoxEmpty_glv2v")
+text = "Reload (+Obstacles)"
+
+[node name="PanelContainer2" type="PanelContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer/ConfirmObstacles"]
+visible = false
+layout_mode = 0
+offset_left = 23.0
+offset_top = 145.0
+offset_right = 245.0
+offset_bottom = 197.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_r0du0")
+
+[node name="Label" type="Label" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer/ConfirmObstacles/PanelContainer2"]
+layout_mode = 2
+text = "The more agents used, the higher
+Update Batches are needed for
+movement to work properly."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Vsync" type="Button" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(154.695, 0)
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_uu6xs")
+toggle_mode = true
+text = "V-Sync | Disabled"
+
+[node name="Fullscreen" type="Button" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(102.035, 0)
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_uu6xs")
+toggle_mode = true
+text = "Fullscreen"
+
+[node name="FullscreenExclusive" type="CheckBox" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Exclusive"
+
+[node name="VSeparator" type="VSeparator" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer"]
+layout_mode = 2
+
+[node name="MaxBatchesLabels" type="VBoxContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer/MaxBatchesLabels"]
+layout_mode = 2
+size_flags_vertical = 1
+text = "Update"
+vertical_alignment = 1
+
+[node name="Label3" type="Label" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer/MaxBatchesLabels"]
+layout_mode = 2
+size_flags_vertical = 1
+text = "batches"
+vertical_alignment = 1
+
+[node name="MaxBatches" type="SpinBox" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 1.0
+max_value = 50.0
+value = 4.0
+rounded = true
+alignment = 1
+update_on_text_changed = true
+select_all_on_focus = true
+
+[node name="PanelContainer2" type="PanelContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer/MaxBatches"]
+visible = false
+layout_mode = 0
+offset_left = -47.0
+offset_top = 145.0
+offset_right = 175.0
+offset_bottom = 197.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_r0du0")
+
+[node name="Label" type="Label" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer/MaxBatches/PanelContainer2"]
+layout_mode = 2
+text = "Update Batches changes
+require pressing Reload."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings"]
+custom_minimum_size = Vector2(0, 43)
+layout_mode = 2
+size_flags_vertical = 6
+mouse_filter = 2
+
+[node name="Gpu" type="Button" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100.59, 0)
+layout_mode = 2
+mouse_behavior_recursive = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_uu6xs")
+text = "GPU/CPU"
+
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/Gpu"]
+visible = false
+layout_mode = 0
+offset_top = 85.0
+offset_right = 305.0
+offset_bottom = 175.0
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/Gpu/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/Gpu/PanelContainer/MarginContainer"]
+z_index = 1
+z_as_relative = false
+layout_mode = 2
+text = "If your GPU goes
+Vrrrruuuuuuuuum,
+and flies off there's something wrong.
+...
+You are that something.
+^.^
+...
+Or get a better GPU/CPU
+- probably something uttered by a Borderlands team."
+
+[node name="Instructions" type="Button" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(126.06, 0)
+layout_mode = 2
+mouse_behavior_recursive = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_uu6xs")
+text = "Instructions"
+
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/Instructions"]
+visible = false
+layout_mode = 0
+offset_top = 85.0
+offset_right = 305.0
+offset_bottom = 243.0
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/Instructions/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/Instructions/PanelContainer/MarginContainer"]
+z_index = 1
+z_as_relative = false
+layout_mode = 2
+text = "1. Set the agent count.
+
+2. Press either Reload button.
+
+4. First couple seconds might have low FPS, that is expected, let it converge.
+
+3. Use WASD to move around.
+
+4. Press F1 to cycle through different cameras.
+
+5. Agents with avoidance - how many [%] agents use avoidance, the remaining ones still use navigation paths, but without avoidance.
+
+6. Update batches - splits agents into multiple batches, only one batch of agents is updated per an Update Interval (Timer).
+
+7. Update Interval - how often should a batch be updated.
+
+8. For obstacle map start with low agent count, it's a lot more expensive.
+
+9. ` (backtick key) shows/hides the top menu (or click on the toggle in the top left."
+
+[node name="Capsule" type="Button" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(171.37, 0)
+layout_mode = 2
+mouse_behavior_recursive = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_uu6xs")
+text = "Switch to Capsule"
+
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/Capsule"]
+visible = false
+layout_mode = 0
+offset_top = 85.0
+offset_right = 305.0
+offset_bottom = 164.0
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/Capsule/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="Label" type="Label" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/Capsule/PanelContainer/MarginContainer"]
+z_index = 1
+z_as_relative = false
+layout_mode = 2
+text = "Pff.."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Faq" type="Button" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(61.38, 0)
+layout_mode = 2
+mouse_behavior_recursive = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_uu6xs")
+text = "FAQ"
+
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/Faq"]
+visible = false
+layout_mode = 0
+offset_top = 85.0
+offset_right = 305.0
+offset_bottom = 316.0
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/Faq/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="RichLabelText" type="RichTextLabel" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/Faq/PanelContainer/MarginContainer"]
+z_index = 1
+z_as_relative = false
+layout_mode = 2
+bbcode_enabled = true
+text = "1. My specs: Intel i5 13600kf, Nvidia RTX 4070, RAM DDR5 32 GB, SSD.
+
+2. It utilizes NavigationServer directly without interacting with the scene tree - check godot docs, they have great navigation examples with code.
+
+3. Some agents may pass through some other agents. This is expected and can be tweaked as a setting - not in this demo since this is built for my game's use case.
+
+4. No physics, no collision bodies, nothing, only navigation paths and navigation agent avoidance.
+
+5. Yes, there are ways to optimize it even further. Some I'll test in the future but not all of them, this demo is already beyond what I need for my game.
+
+6. 20k agents ~30 fps for me. 15k at ~200-300 fps.
+
+7. Rendering is handled manually with the RenderingServer directly. Previous iteration used MeshInstance3D nodes - which yielded about 60 fps at the lowest, on average about 200-300 with 10k agents - pretty good.
+
+8. In the obstacle map, agents clump up around obstacles, this is expected, it's tweakable with settings which are not exposed in this demo to you. The purpose is just to show it works with obstacles just fine too. Performance wise I'd need to make several adjustments to support large agent counts with obstacles.
+
+9. Yes, I will at some point release the code to github too. No, not right now, NodalBastion (check Credits button) is my main focus now and here I still have things I want to try and improve in the code, clean it up, put together some explanation how it works, ..., sumed it up this means it will take more work to release it which I currently don't have, but it will be out at some point.
+
+10. No, I don't have a release date set for the code yet, but feel free to ask questions I don't mind answering.
+
+11. Yes, a professional designer worked on this UI, no doubts, pinky promise."
+
+[node name="Exit" type="Button" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(104.275, 0)
+layout_mode = 2
+mouse_behavior_recursive = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_uu6xs")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_uu6xs")
+text = "Exit Game"
+
+[node name="Credits" type="Button" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(84.79, 0)
+layout_mode = 2
+mouse_behavior_recursive = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_glv2v")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_uu6xs")
+text = "Credits"
+
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/Credits"]
+visible = false
+layout_mode = 0
+offset_top = 33.0
+offset_right = 305.0
+offset_bottom = 123.0
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/Credits/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="CreditsText" type="RichTextLabel" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/Credits/PanelContainer/MarginContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+bbcode_enabled = true
+text = "You can check my game on Steam: [url={\"steam\": \"https://store.steampowered.com/app/3944520/NodalBastion/\"}]NodalBastion[/url] <- click on it.
+Thank you <3.
+
+This agent project you are using right now is a tech demo for my side project I work on during occasional spare moments.
+
+Created by:
+Blank Name Studio, aka Nicknamegeneratorfailed"
+
+[node name="VSeparator2" type="VSeparator" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2"]
+layout_mode = 2
+
+[node name="AvoidanceRatioLabel" type="Label" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(28.875, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "100%"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AvoidanceRationSlider" type="VBoxContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/AvoidanceRationSlider"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/AvoidanceRationSlider/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Agents with avoidance"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AvoidanceRatio" type="HSlider" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/AvoidanceRationSlider"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(185.35, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+mouse_behavior_recursive = 2
+max_value = 10.0
+value = 10.0
+rounded = true
+tick_count = 11
+ticks_position = 3
+
+[node name="PanelContainer2" type="PanelContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/AvoidanceRationSlider/AvoidanceRatio"]
+visible = false
+layout_mode = 0
+offset_left = -19.0
+offset_top = 64.0
+offset_right = 203.0
+offset_bottom = 116.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_r0du0")
+
+[node name="Label" type="Label" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/AvoidanceRationSlider/AvoidanceRatio/PanelContainer2"]
+layout_mode = 2
+text = "Avoidance changes
+require pressing Reload."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="VSeparator" type="VSeparator" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2"]
+layout_mode = 2
+
+[node name="UpdateIntervalLabels" type="VBoxContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/UpdateIntervalLabels"]
+layout_mode = 2
+size_flags_vertical = 1
+theme_override_font_sizes/font_size = 11
+text = "Update
+interval
+per batch"
+vertical_alignment = 1
+
+[node name="UpdateInterval" type="SpinBox" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+min_value = 0.01
+max_value = 5.0
+step = 0.01
+value = 0.15000000000000002
+alignment = 1
+update_on_text_changed = true
+suffix = "s"
+select_all_on_focus = true
+
+[node name="PanelContainer2" type="PanelContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/UpdateInterval"]
+visible = false
+layout_mode = 0
+offset_left = -134.0
+offset_top = 91.0
+offset_right = 88.0
+offset_bottom = 143.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_r0du0")
+
+[node name="Label" type="Label" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer2/UpdateInterval/PanelContainer2"]
+layout_mode = 2
+text = "Update Interval changes
+require pressing Reload."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings"]
+layout_mode = 2
+size_flags_horizontal = 0
+mouse_filter = 2
+mouse_behavior_recursive = 1
+
+[node name="Meters" type="PanelContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer3"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer3/Meters"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_right = 10
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer3/Meters/MarginContainer"]
+layout_mode = 2
+
+[node name="Fps" type="Label" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer3/Meters/MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(152.16, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.3196501, 0, 1)
+theme_override_font_sizes/font_size = 18
+text = "0 FPS"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer3/Meters/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(228.045, 0)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer3/Meters/MarginContainer/HBoxContainer/HBoxContainer2"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.3196501, 0, 1)
+theme_override_font_sizes/font_size = 18
+text = "Agents count:"
+
+[node name="AgentCount" type="Label" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer3/Meters/MarginContainer/HBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.3196501, 0, 1)
+theme_override_font_sizes/font_size = 18
+text = "0"
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer3/Meters/MarginContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="Time" type="Label" parent="CanvasLayer/MarginContainer/HBoxContainer/Settings/HBoxContainer3/Meters/MarginContainer/HBoxContainer/HBoxContainer3"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.3196501, 0, 1)
+theme_override_font_sizes/font_size = 18
+text = "00:00:00"
+
+[node name="TimeUpdate" type="Timer" parent="."]
+wait_time = 0.1

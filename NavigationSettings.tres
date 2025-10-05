@@ -1,0 +1,18 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://yu153wjmtv2g"]
+
+[ext_resource type="PackedScene" uid="uid://d060w1e8fnaxo" path="res://Agent.tscn" id="1_yfnds"]
+[ext_resource type="Script" uid="uid://dumcvp76hpjoa" path="res://NavigationSettings.cs" id="2_am1gd"]
+
+[resource]
+script = ExtResource("2_am1gd")
+AgentCount = 1000
+AgentScene = ExtResource("1_yfnds")
+MaxBatchCount = 1
+UpdatePathInterval = 0.15
+MaxPathDistance = 1.0
+AgentRadius = 0.6
+AgentMaxNeighbours = 25
+AgentMaxNeighbourDistance = 10.0
+AgentTimeHorizonAgents = 0.2
+AgentMaxSpeed = 0.5
+TargetDistanceUpdateInterval = 0.25

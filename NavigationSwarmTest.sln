@@ -1,0 +1,19 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NavigationSwarmTest", "NavigationSwarmTest.csproj", "{DE158BAB-1957-4AC8-A1EF-DC49E8E498EF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+	Debug|Any CPU = Debug|Any CPU
+	ExportDebug|Any CPU = ExportDebug|Any CPU
+	ExportRelease|Any CPU = ExportRelease|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DE158BAB-1957-4AC8-A1EF-DC49E8E498EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE158BAB-1957-4AC8-A1EF-DC49E8E498EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE158BAB-1957-4AC8-A1EF-DC49E8E498EF}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
+		{DE158BAB-1957-4AC8-A1EF-DC49E8E498EF}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
+		{DE158BAB-1957-4AC8-A1EF-DC49E8E498EF}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
+		{DE158BAB-1957-4AC8-A1EF-DC49E8E498EF}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+	EndGlobalSection
+EndGlobal
