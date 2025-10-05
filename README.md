@@ -6,6 +6,7 @@ Itch: https://nicknamegeneratorfailed.itch.io/navigation-tech-test-godot
 
 ### Links
 Youtube: https://youtu.be/F4HbQmWJJ28
+
 Github: https://github.com/viksl/Godot-Navigation-Agents-Demo
 
 ### Instructions
@@ -17,3 +18,8 @@ Youtube: https://youtu.be/F4HbQmWJJ28
 
 ### Support
 If you would like to support me you can check my game NodalBastion on Steam https://store.steampowered.com/app/3944520/NodalBastion/ and give it a wishlist, thank you <3.
+
+### Credits
+Floor texture from the Kenny's assets: https://kenney.nl/assets
+
+Debug Menu addon: https://godotengine.org/asset-library/asset/1903
