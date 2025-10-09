@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -39,7 +40,7 @@ public partial class TestNavigation : Node3D
     private float[] _multiMeshTaskBuffer;
     private Transform3D[] _transformsForMultiMeshBufferTask;
     private Task _updateMultiMeshBufferTask;
-    private Task[] _getPathTasks;
+    private Task[] _pathTasks;
     private ThreadWorker[] _pathThreadWorkers;
     private ThreadWorker _multiMeshWorker;
     private ThreadWorker _distanceUpdatesWorker;
@@ -62,9 +63,16 @@ public partial class TestNavigation : Node3D
     private int _maxSkippedUpdateIntervals;
     private int _agentPathAdjustmentBreakLimit;
     private double _targetDistanceUpdateInterval;
-    private float _maxPathDistanceSquared;
-    private float _agentTargetMaxDistanceSquared;
+    private float _maxDistanceToPathPointSquared;
+    private float _agentMaxDistanceToTargetSquared;
+    private float _targetSafeDistanceFromPathEndSquared = 4f;
+    private int _agentPathQueriesSkippedMax = 5;
     
+    private readonly ArrayPool<Vector3> _agentPositions = ArrayPool<Vector3>.Shared;
+    private readonly ArrayPool<Vector3> _agentPathLastPoints = ArrayPool<Vector3>.Shared;
+    private readonly ArrayPool<Vector3[]> _agentPaths = ArrayPool<Vector3[]>.Shared;
+    private readonly ArrayPool<bool> _isTargetReachable = ArrayPool<bool>.Shared;
+    private readonly ArrayPool<float> _distances = ArrayPool<float>.Shared;
     
     public int AgentCountOverride { get; set; } = -1;
     
@@ -83,13 +91,38 @@ public partial class TestNavigation : Node3D
         public float MinDistanceForHigherUpdateInterval = 100f;
         public float DistanceToTargetSquared = -1;
         public float DistanceToPlayerSquared = -1;
+        public bool IsTargetReachable = true;
         public Rid MultiMeshRid = default;
         public Rid MultiMeshInstanceRid = default;
+        public Node3D Target = null;
+        public float SlowDownToTargetMaxDistanceSquared = 20f;
+        public float MaxDistanceToTargetSquared = 3f;
+        public int PathQueriesSkipped = 0;
+        public int PathQueriesSkippedMax = 5;
     }
     
     public override void _Ready()
     {
         base._Ready();
+        
+        // TODO: Store some settings from _settings in private variables, for example max batches can be changed from
+        //      ui, which is a problem, either not all agents get updated or OutOfRange error with value higher than
+        //      the size of the batches array. On the other hand some settings such as the not yet implemented
+        //      rendering distance will be useful to change on the go so keep the settings resource and use it too.
+        
+        // TODO: Compare performance vs the previous version, is it the same or not? This one seems to me it's slower
+        //      but I'm not sure. and why would this be slower, it's still the same code just neatly stashed into an array.
+        
+        // TODO: Not all agents need to query for a path, for example agents near each other can follow the same path.
+        //      This could reduce the number of queries by a lot. But right now the rendering is the bottleneck,
+        //      or to be precise the CPU part of rendering, not even disabling depth draw mode and enabling no depth test
+        //      on the material makes any difference.
+        //      Maybe agents farther away could be rendered less often? That would not helped with agents stacked though.
+        //      Need to test:
+        //      Disable frustum culling - this can be done through the RenderingServer's instance_set_ignore_culling.
+        //      Disabling with an extra AABB margin stabilizes teh frames at around 90 in debug editor mode for 10k
+        //      agents with no avoidance when they overlap. It's not much but it's something.
+        //      Test multimesh and particles I guess.
         
         _agentCount = _settings.AgentCount;
         _agentsPerRow = _settings.AgentsPerRow;
@@ -109,9 +142,9 @@ public partial class TestNavigation : Node3D
         _maxSkippedUpdateIntervals = _settings.MaxSkippedUpdateIntervals;
         _agentPathAdjustmentBreakLimit = _settings.AgentPathAdjustmentBreakLimit;
         _targetDistanceUpdateInterval = _settings.TargetDistanceUpdateInterval;
-        _maxPathDistanceSquared = _settings.MaxPathDistanceSquared;
-        _agentTargetMaxDistanceSquared = _settings.AgentTargetMaxDistanceSquared;
-        
+        _maxDistanceToPathPointSquared = _settings.MaxDistanceToPathPointSquared;
+        _agentMaxDistanceToTargetSquared = _settings.AgentMaxDistanceToTargetSquared;
+        _agentPathQueriesSkippedMax = _settings.AgentPathQueriesSkippedMax;
         
         SetPhysicsProcess(false);
         SetProcess(false);
@@ -187,6 +220,7 @@ public partial class TestNavigation : Node3D
         rs.MultimeshSetMesh(multiMeshRid, mesh.GetRid());
         rs.MultimeshSetPhysicsInterpolated(multiMeshRid, true);
         rs.MultimeshSetPhysicsInterpolationQuality(multiMeshRid, RenderingServer.MultimeshPhysicsInterpolationQuality.Fast);
+        // TODO: Maybe set custom aabb for the MultiMesh too?
         
         // Create agents.
         _agents = new Agent[agentCount];
@@ -204,6 +238,8 @@ public partial class TestNavigation : Node3D
                 MeshHalfSize = meshHalfSize,
                 MultiMeshInstanceRid = multiMeshInstanceRid,
                 MultiMeshRid = multiMeshRid,
+                Target = _player,
+                PathQueriesSkippedMax = _agentPathQueriesSkippedMax,
             };
             
             var navMapRid = GetWorld3D().GetNavigationMap();
@@ -272,8 +308,8 @@ public partial class TestNavigation : Node3D
             _agentBatchIndices[i] = agentBatchIndices[i].OrderBy(ii => ii).ToArray();
         }
         
-        _getPathTasks = new Task[_maxBatchCount];
-        _getPathTasks.AsSpan().Clear();
+        _pathTasks = new Task[_maxBatchCount];
+        _pathTasks.AsSpan().Clear();
         _pathThreadWorkers = new ThreadWorker[_maxBatchCount];
         Enumerable.Range(0, _maxBatchCount).ToList().ForEach(i => _pathThreadWorkers[i] = new ThreadWorker("PathThreadWorker_" + i));
         
@@ -350,57 +386,100 @@ public partial class TestNavigation : Node3D
         var currentBatch = _currentBatch;
         _currentBatch = ++_currentBatch % _maxBatchCount;
         
-        if (_getPathTasks is null)
+        if (_pathTasks is null)
         {
             return;
         }
 
-        if (_getPathTasks[currentBatch] is not null)
+        if (_pathTasks[currentBatch] is not null)
         {
             return;
         }
         
-        var agentPaths = new Vector3[_agentBatchIndices[currentBatch].Length][];
         var navMapRid = GetWorld3D().GetNavigationMap();
-        var playerPosition = _player.GlobalPosition;
-        var positions = new Vector3[_agentBatchIndices[currentBatch].Length];
+        
+        var newAgentPaths = _agentPaths.Rent(_agentBatchIndices[currentBatch].Length);
+        var oldAgentPaths = _agentPaths.Rent(_agentBatchIndices[currentBatch].Length);
+        var positions = _agentPositions.Rent(_agentBatchIndices[currentBatch].Length);
+        var targetPositions = _agentPositions.Rent(_agentBatchIndices[currentBatch].Length);
+        var isTargetReachable = _isTargetReachable.Rent(_agentBatchIndices[currentBatch].Length);
+        
         ReadOnlySpan<Agent> agents = _agents.AsSpan();
-        var ii = 0;
-        foreach (var index in _agentBatchIndices[currentBatch].AsSpan())
+        
+        var agentIndex = 0;
+        foreach (var agentBatchIndex in _agentBatchIndices[currentBatch].AsSpan())
         {
-            ref readonly var agent = ref agents[index];
-            positions[ii] = agent.Transform3D.Origin;
-            ii++;
+            ref readonly var agent = ref agents[agentBatchIndex];
+            positions[agentIndex] = agent.Transform3D.Origin;
+            targetPositions[agentIndex] = agent.Target.GlobalPosition;
+            isTargetReachable[agentIndex] = agent.IsTargetReachable;
+            
+            oldAgentPaths[agentIndex] = new Vector3[agent.Path.Length];
+            for (var i = 0; i < agent.Path.Length; i++)
+            {
+                var vector3 = agent.Path[i];
+                oldAgentPaths[agentIndex][i] = vector3;
+            }
+
+            agentIndex++;
         }
 
         var pathTask = _pathThreadWorkers[currentBatch].EnqueueWork(
             () =>
             {
                 var ns = NavigationServer3D.Singleton;
-        
                 var indices = _agentBatchIndices[currentBatch].AsSpan();
                 var i = 0;
-                foreach (var _ in indices)
+                var agents = _agents.AsSpan();
+                
+                foreach (var agentIndex in indices)
                 {
-                    agentPaths[i] = ns.MapGetPath(navMapRid, positions[i], playerPosition, true);
+                    var targetPosition = targetPositions[i];
+
+                    ref var skippedQueries = ref agents[agentIndex].PathQueriesSkipped;
+                    ref var maxQueries = ref agents[agentIndex].PathQueriesSkippedMax;
+                    if (skippedQueries < maxQueries)
+                    {
+                        // Keep the path if the target hasn't moved far enough.
+                        var oldPath = oldAgentPaths[i];
+                        if (oldPath.Length > 0 && isTargetReachable[i])
+                        {
+                            newAgentPaths[i] = oldPath;
+                            skippedQueries++;
+                            i++;
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        skippedQueries = 0;
+                    }
+                    
+                    // TODO: Both will eventually need to have Y set to 0 to avoid floating above the ground and such?
+                    newAgentPaths[i] = ns.MapGetPath(navMapRid, positions[i], targetPosition, true);
                     i++;
                 }
             }
         );
         
-        _getPathTasks[currentBatch] = pathTask;
+        _pathTasks[currentBatch] = pathTask;
 
         await pathTask;
 
+        _agentPaths.Return(oldAgentPaths);
+        _agentPositions.Return(positions);
+        _agentPositions.Return(targetPositions);
+        _isTargetReachable.Return(isTargetReachable);
+        
         Callable.From(() =>
         {
-            ApplyPathsOnMainThread(currentBatch, agentPaths);
+            ApplyPathsOnMainThread(currentBatch, newAgentPaths);
         }).CallDeferred();
     }
 
-    private void ApplyPathsOnMainThread(int batchIndex, Vector3[][] agentPaths)
+    private void ApplyPathsOnMainThread(int batchIndex, Vector3[][] newAgentPaths)
     {
-        _getPathTasks[batchIndex] = null;
+        _pathTasks[batchIndex] = null;
         var indices = _agentBatchIndices[batchIndex].AsSpan();
         var pathBreakLimit = _agentPathAdjustmentBreakLimit;
         
@@ -408,7 +487,7 @@ public partial class TestNavigation : Node3D
         {
             var index = indices[i];
             ref var agent = ref _agents[index];
-            var newPath = agentPaths[i];
+            var newPath = newAgentPaths[i];
 
             if (newPath == null || newPath.Length == 0)
             {
@@ -416,6 +495,8 @@ public partial class TestNavigation : Node3D
             }
 
             var startIndex = 0;
+            // Check the path for any points that are behind the agent, if so, adjust the path until a limit is hit.
+            // if the limit is hit, the path is probably really going backwards, so let's follow it.
             if (agent.Path is {Length: > 0} && agent.CurrentPathIndex < agent.Path.Length)
             {
                 var agentPosition = agent.Transform3D.Origin;
@@ -424,14 +505,23 @@ public partial class TestNavigation : Node3D
                 var breakCounter = 0;
                 for (int j = 0; j < newPath.Length; j++)
                 {
+                    // var newPathPointPosition = agent.Path[j];
                     var newPathPointPosition = newPath[j];
                     var direction = agentPosition.DirectionTo(newPathPointPosition);
                     var dot = currentDirection.Dot(direction);
+                    // Some positions might be behind the agent, in that case we need to skip them.
+                    // This is a bit of a hack/rough solution, but it works.
+                    // But on maps with obstacles, the more agents used, the more batches need to be set
+                    // otherwise the agents will start moving really weird from side to side. This is because
+                    // it takes too long to find paths while the agent is moving and the gap becomes too large
+                    // which makes the dot product below no longer work well.
                     if (dot < 0)
                     {
                         newPath[j] = agentPosition;
                         startIndex++;
                         breakCounter++;
+                        // Limit how many path checks happen to make sure that if there's a path actually going
+                        // backwards that we don't skip it.
                         if (breakCounter <= pathBreakLimit)
                         {
                             continue;
@@ -458,6 +548,8 @@ public partial class TestNavigation : Node3D
             agent.Path = newPath;
             agent.CurrentPathIndex = startIndex;
         }
+        
+        _agentPaths.Return(newAgentPaths);
     }
     
     private void MoveAgents(float delta)
@@ -472,8 +564,7 @@ public partial class TestNavigation : Node3D
         
         var ns = NavigationServer3D.Singleton;
         var agents = _agents.AsSpan();
-        var agentTargetMaxDistanceSquared = _agentTargetMaxDistanceSquared;
-        var maxPathDistanceSquared = _maxPathDistanceSquared;
+        var maxPathDistanceSquared = _maxDistanceToPathPointSquared;
         
         foreach (ref var agent in agents)
         {
@@ -494,14 +585,23 @@ public partial class TestNavigation : Node3D
             }
 
             var direction = agentCurrentPosition.DirectionTo(nextPathPosition);
-            var distanceToTargetSquared = agent.DistanceToPlayerSquared;
+            var distanceToTargetSquared = agent.DistanceToTargetSquared;
             
             var speedMultiplier = 1f;
-            if (distanceToTargetSquared < agentTargetMaxDistanceSquared)
+            if (distanceToTargetSquared < agent.MaxDistanceToTargetSquared)
             {
-                speedMultiplier = Math.Max(0.2f, distanceToTargetSquared / agentTargetMaxDistanceSquared);
+                ns.AgentSetVelocity(agent.NavRid, Vector3.Zero);
+                continue;
             }
+            
+            var slowDownDistanceSquared = agent.SlowDownToTargetMaxDistanceSquared;
+            if (distanceToTargetSquared < slowDownDistanceSquared)
+            {
+                speedMultiplier = Math.Max(0.2f, distanceToTargetSquared / slowDownDistanceSquared);
+            }
+            
             Vector3 newVelocity = direction * speedMultiplier * _movementDelta;
+            
             if (agent.AvoidanceEnabled)
             {
                 var navRid = agent.NavRid;
@@ -520,7 +620,7 @@ public partial class TestNavigation : Node3D
         {
             return;
         }
-        
+
         var agentNavRid = agentData.NavRid;
         var smoothedVelocity = agentData.PreviousVelocity.Lerp(safeVelocity, _agentVelocitySmoothing);
         agentData.PreviousVelocity = smoothedVelocity;
@@ -570,6 +670,7 @@ public partial class TestNavigation : Node3D
     
     private void UpdateMultiMeshBuffer()
     {
+        // 12 here is the number of floats per transform, 4 for each of the basis vectors and 3 for the origin.
         ReadOnlySpan<Transform3D> transforms = _transformsForMultiMeshBufferTask.AsSpan();
         var nextIndex = 0;
         foreach (ref readonly var xform in transforms)
@@ -616,50 +717,85 @@ public partial class TestNavigation : Node3D
     {
         var playerPosition = _player.GlobalPosition;
         ReadOnlySpan<Agent> agents = _agents.AsSpan();
-        var agentPositions = new Vector3[_agents.Length];
-        var targetPositions = new Vector3[_agents.Length];
+        var agentPositions = _agentPositions.Rent(_agents.Length);
+        var targetPositions = _agentPositions.Rent(_agents.Length);
+        var agentPathLastPoints = _agentPathLastPoints.Rent(_agents.Length);
+        var isTargetReachable = _isTargetReachable.Rent(_agents.Length);
+        var pathEmptyCondition = Vector3.Right * float.MaxValue;
+        
         for (var i = 0; i < agents.Length; i++)
         {
             ref readonly var agent = ref agents[i];
             agentPositions[i] = agent.Transform3D.Origin;
-            targetPositions[i] = playerPosition;
+            targetPositions[i] = agent.Target.GlobalPosition;
+            var path = agent.Path;
+            if (path.Length > 0)
+            {
+                agentPathLastPoints[i] = path[^1];
+            }
+            else
+            {
+                agentPathLastPoints[i] = pathEmptyCondition;
+            }
         }
-
-        var distancesToPlayerSquared = new float[_agents.Length];
-        var distancesToTargetSquared = new float[_agents.Length];
+        
+        var distancesToPlayerSquared = _distances.Rent(_agents.Length);
+        var distancesToTargetSquared = _distances.Rent(_agents.Length);
         
         var distanceUpdatesTask = _distanceUpdatesWorker.EnqueueWork(
             () =>
             {
-                for (var index = 0; index < agentPositions.Length; index++)
+                for (var agentIndex = 0; agentIndex < agentPositions.Length; agentIndex++)
                 {
-                    ref var agentPosition = ref agentPositions[index];
-                    ref var target = ref targetPositions[index];
+                    ref var agentPosition = ref agentPositions[agentIndex];
+                    ref var target = ref targetPositions[agentIndex];
                     
                     var agentTargetDx = target.X - agentPosition.X;
                     var agentTargetDz = target.Z - agentPosition.Z;
                     var agentTargetDxSq = agentTargetDx * agentTargetDx;
                     var agentTargetDzSq = agentTargetDz * agentTargetDz;
-                    distancesToTargetSquared[index] = agentTargetDxSq + agentTargetDzSq; 
+                    var agentTargetDistancesSquared = agentTargetDxSq + agentTargetDzSq;
+                    distancesToTargetSquared[agentIndex] = agentTargetDistancesSquared;
                         
                     var agentPlayerDx = playerPosition.X - agentPosition.X;
                     var agentPlayerDz = playerPosition.Z - agentPosition.Z;
                     var agentPlayerDxSq = agentPlayerDx * agentPlayerDx;
                     var agentPlayerDzSq = agentPlayerDz * agentPlayerDz;
-                    distancesToPlayerSquared[index] = agentPlayerDxSq + agentPlayerDzSq;
+                    distancesToPlayerSquared[agentIndex] = agentPlayerDxSq + agentPlayerDzSq;
+                    
+                    var targetPosition = targetPositions[agentIndex];
+                    
+                    var targetMaxOffset = agentTargetDistancesSquared > 250f
+                    ? _targetSafeDistanceFromPathEndSquared * 10f // just some value, it can be changed, no particular reason why 30
+                    : _targetSafeDistanceFromPathEndSquared * 5f; // same as above, but careful, too low will stop the agents 
+                    
+                    // Keep the path if the target hasn't moved far enough.
+                    var lastPathPoint = agentPathLastPoints[agentIndex];
+                    if (lastPathPoint != pathEmptyCondition && lastPathPoint.DistanceSquaredTo(targetPosition) < targetMaxOffset)
+                    {
+                        isTargetReachable[agentIndex] = true;
+                    }
+                    else
+                    {
+                        isTargetReachable[agentIndex] = false;
+                    }
                 }
             }
         );
         
         await distanceUpdatesTask;
 
+        _agentPositions.Return(agentPositions);
+        _agentPositions.Return(targetPositions);
+        _agentPathLastPoints.Return(agentPathLastPoints);
+
         Callable.From(() =>
         {
-            ApplyAgentDistances(distancesToPlayerSquared, distancesToTargetSquared);
+            ApplyAgentDistances(distancesToPlayerSquared, distancesToTargetSquared, isTargetReachable);
         }).CallDeferred();
     }
 
-    private void ApplyAgentDistances(float[] distancesToPlayer, float[] distancesToTarget)
+    private void ApplyAgentDistances(float[] distancesToPlayer, float[] distancesToTarget, bool[] isTargetReachable)
     {
         var agents = _agents.AsSpan();
         for (var index = 0; index < agents.Length; index++)
@@ -667,6 +803,11 @@ public partial class TestNavigation : Node3D
             ref var agent = ref agents[index];
             agent.DistanceToPlayerSquared = distancesToPlayer[index];
             agent.DistanceToTargetSquared = distancesToTarget[index];
+            agent.IsTargetReachable = isTargetReachable[index];
         }
+        
+        _distances.Return(distancesToPlayer);
+        _distances.Return(distancesToTarget);
+        _isTargetReachable.Return(isTargetReachable);
     }
 }

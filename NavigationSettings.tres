@@ -15,4 +15,4 @@ AgentMaxNeighbours = 25
 AgentMaxNeighbourDistance = 10.0
 AgentTimeHorizonAgents = 0.2
 AgentMaxSpeed = 0.5
-TargetDistanceUpdateInterval = 0.25
+AgentTargetMaxDistance = 3.0

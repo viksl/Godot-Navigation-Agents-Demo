@@ -36,7 +36,7 @@ public partial class NavigationSettings : Resource
         set
         {
             _maxPathDistance = value;
-            MaxPathDistanceSquared = value * value;
+            MaxDistanceToPathPointSquared = value * value;
         }
     }
 
@@ -64,11 +64,11 @@ public partial class NavigationSettings : Resource
     [Export]
     public float AgentTargetMaxDistance
     {
-        get => _AgentTargetMaxDistance;
+        get => _agentTargetMaxDistance;
         set
         {
-            _AgentTargetMaxDistance = value;
-            AgentTargetMaxDistanceSquared = value * value;
+            _agentTargetMaxDistance = value;
+            AgentMaxDistanceToTargetSquared = value * value;
         }
     }
 
@@ -95,12 +95,15 @@ public partial class NavigationSettings : Resource
     [Export]
     public double TargetDistanceUpdateInterval { get; set; } = 0.5;
 
-    public float MaxPathDistanceSquared { get; set; }
-    public float AgentTargetMaxDistanceSquared { get; set; }
+    [Export]
+    public int AgentPathQueriesSkippedMax { get; set; } = 5;
+    
+    public float MaxDistanceToPathPointSquared = 1;
+    public float AgentMaxDistanceToTargetSquared = 1;
     
     private int _maxSkippedUpdateIntervals = 5;
     private float _agentAvoidanceRation = 1;
     private int _maxBatchCount = 4;
     private float _maxPathDistance = 0.5f;
-    private float _AgentTargetMaxDistance = 3f;
+    private float _agentTargetMaxDistance = 1;
 }

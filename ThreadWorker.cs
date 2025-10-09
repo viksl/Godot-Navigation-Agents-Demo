@@ -55,6 +55,11 @@ public class ThreadWorker : IDisposable
     public Task EnqueueWork(Action action)
     {
         var tcs = new TaskCompletionSource<bool>();
+        // This below might be the safest approach since the await might be finished on the thread which called the task.
+        // Which means it could be this thread on the thread worker, which might be a race condition since the code after
+        // the await accesses TestNavigation.cs fields just like other threads might at the same time.
+        // But since the continuation code is now called in a deferred manner - it should not matter anymore.
+        // var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         _workQueue.Add(new WorkItem { Action = action, CompletionSource = tcs });
         return tcs.Task;
     }
